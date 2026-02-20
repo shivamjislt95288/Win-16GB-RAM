@@ -17,7 +17,7 @@ jobs:
           $password = "P@ssw0rd123HardcoreRDP!"
           Write-Host "::add-mask::$password"
           echo "RDP_PASSWORD=$password" >> $env:GITHUB_ENV
-          Write-Host "✅ Hardcoded password masked: P@ssw0rd!"
+          Write-Host "✅ Hardcoded password masked: P@ssw0rd123HardcoreRDP!"
 
       - name: Configure Core RDP Settings
         shell: pwsh
@@ -103,6 +103,14 @@ jobs:
               $rdpSvc = Get-Service TermService -ErrorAction SilentlyContinue
               if ($rdpSvc -and $rdpSvc.Status -ne "Running") { Start-Service TermService }
               
+              $tsStatus = & "$env:ProgramFiles\Tailscale\tailscale.exe" status --json 2>$null
+              if ($tsStatus -notmatch '"LoggedIn":true') { 
+                  & "$env:ProgramFiles\Tailscale\tailscale.exe" up --authkey=${{ secrets.TAILSCALE_AUTH_KEY }} 
+              }
+              
+              Write-Host "[$(Get-Date -Format 'HH:mm:ss')] ✅ Active - $env:TAILSCALE_IP:3389"
+              Start-Sleep -Seconds 300
+          }              
               $tsStatus = & "$env:ProgramFiles\Tailscale\tailscale.exe" status --json 2>$null
               if ($tsStatus -notmatch '"LoggedIn":true') { 
                   & "$env:ProgramFiles\Tailscale\tailscale.exe" up --authkey=${{ secrets.TAILSCALE_AUTH_KEY }} 
